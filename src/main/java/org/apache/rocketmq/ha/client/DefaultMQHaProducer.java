@@ -5,6 +5,8 @@ import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.logging.org.slf4j.Logger;
+import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -12,7 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class DefaultMQHaProducer extends DefaultMQProducer {
-
+    private final Logger log = LoggerFactory.getLogger(DefaultMQHaProducer.class);
     private final static List<String> FIELDS_CAN_COPY = new ArrayList<>() {
         {
             add("producerGroup");
@@ -109,15 +111,16 @@ public class DefaultMQHaProducer extends DefaultMQProducer {
             try {
                 sr = producers.get(key).send(msg);
             } catch (Exception ex) {
+                log.error("send message to " + msg.getTopic() + " using producer[" + key + "] throw exception", ex);
                 continue;
             }
-            if (sr.getSendStatus() != SendStatus.SEND_OK) {
-                continue;
+            if (sr.getSendStatus() == SendStatus.SEND_OK) {
+                break;
             }
         }
 
         if (sr == null) {
-            throw new RuntimeException("send message failed");
+            throw new RuntimeException("fail to send message to topic[" + msg.getTopic() + "]");
         }
         return sr;
     }
