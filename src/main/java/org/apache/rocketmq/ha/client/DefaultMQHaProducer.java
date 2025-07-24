@@ -1,9 +1,12 @@
 package org.apache.rocketmq.ha.client;
 
+import org.apache.rocketmq.acl.common.AclClientRPCHook;
+import org.apache.rocketmq.acl.common.SessionCredentials;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
+import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.logging.org.slf4j.Logger;
 import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
@@ -14,7 +17,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class DefaultMQHaProducer extends DefaultMQProducer {
-    private final Logger log = LoggerFactory.getLogger(DefaultMQHaProducer.class);
+    private final static Logger log = LoggerFactory.getLogger(DefaultMQHaProducer.class);
+    // fields can copy from DefaultMQProducer
     private final static List<String> FIELDS_CAN_COPY = new ArrayList<>() {
         {
             add("producerGroup");
@@ -36,12 +40,13 @@ public class DefaultMQHaProducer extends DefaultMQProducer {
             add("batchMaxDelayMs");
             add("batchMaxBytes");
             add("totalBatchMaxBytes");
-            add("rpcHook");
         }
     };
-    private final static LinkedHashMap<String, DefaultMQProducer> producers = new LinkedHashMap<>();
+    // all producers for rocketmq clusters
+    private final static LinkedHashMap<String, DefaultMQProducer> PRODUCERS = new LinkedHashMap<>();
 
-    private static void copyFieldValue(String fieldName, Class<?> sourceInstanceClass, Object sourceInstance, Object targetInstance) {
+    // copy value from source instance to target instance
+    static void copyFieldValue(String fieldName, Class<?> sourceInstanceClass, Object sourceInstance, Object targetInstance) {
         Field field = null;
         try {
             field = sourceInstanceClass.getDeclaredField(fieldName);
@@ -67,51 +72,71 @@ public class DefaultMQHaProducer extends DefaultMQProducer {
         }
     }
 
-    public static DefaultMQHaProducer changeToHa(DefaultMQProducer notStartedProducer, LinkedHashMap<String, String> namesrvLists) {
+    // change a normal producer to ha producer by user
+    public static DefaultMQHaProducer changeToHa(DefaultMQProducer notStartedProducer, LinkedHashMap<String, NameserverInfo> namesrvLists) {
         DefaultMQHaProducer haProducer = new DefaultMQHaProducer();
-
+        String prefixInstanceName = UtilAll.getPid() + "#" + System.nanoTime();
         for (String key : namesrvLists.keySet()) {
             DefaultMQProducer p = new DefaultMQProducer(
                     notStartedProducer.getProducerGroup(),
-                    null,
+                    new AclClientRPCHook(new SessionCredentials(namesrvLists.get(key).getAccessKey(), namesrvLists.get(key).getSecretKey())),
                     notStartedProducer.isEnableTrace(),
                     notStartedProducer.getTraceTopic()
             );
-            p.setNamesrvAddr(namesrvLists.get(key));
+            p.setNamesrvAddr(namesrvLists.get(key).getAddressList());
+
             for (String fieldName : FIELDS_CAN_COPY) {
                 copyFieldValue(fieldName, DefaultMQProducer.class, notStartedProducer, p);
             }
-            p.setUnitName(key);
+            p.setInstanceName(prefixInstanceName + "#" + key + "#ha");
+            PRODUCERS.put(key, p);
         }
         return haProducer;
     }
 
-    public static void addCopyField(String fieldName) {
+    // add field to the copy list
+    static void addCopyField(String fieldName) {
         FIELDS_CAN_COPY.add(fieldName);
     }
 
+    // start all producers in the ha producer
     @Override
     public void start() throws MQClientException {
-        for (String key : producers.keySet()) {
-            producers.get(key).start();
+        if (PRODUCERS.isEmpty()) {
+            throw new RuntimeException("no producer added");
+        }
+        for (String key : PRODUCERS.keySet()) {
+            PRODUCERS.get(key).start();
+            log.info("start producer[" + key + "] success");
         }
     }
 
+    // shutdown all producers in the ha producer and clean the producer map
     @Override
     public void shutdown() {
-        for (String key : producers.keySet()) {
-            producers.get(key).shutdown();
+        for (String key : PRODUCERS.keySet()) {
+            try {
+                PRODUCERS.get(key).shutdown();
+                log.info("shutdown producer[" + key + "] success");
+            } catch (Exception ex) {
+                log.error("shutdown producer[" + key + "] throw exception", ex);
+            }
         }
+
+        PRODUCERS.clear();
     }
 
+    // send message with the ha producer
     @Override
     public SendResult send(Message msg) {
         SendResult sr = null;
-        for (String key : producers.keySet()) {
+        String topic = msg.getTopic();
+        for (String key : PRODUCERS.keySet()) {
             try {
-                sr = producers.get(key).send(msg);
+                sr = PRODUCERS.get(key).send(msg);
             } catch (Exception ex) {
                 log.error("send message to " + msg.getTopic() + " using producer[" + key + "] throw exception", ex);
+                msg.setTopic(topic); // RCODE001: reset topic. producer would update topic with its namespace
                 continue;
             }
             if (sr.getSendStatus() == SendStatus.SEND_OK) {
@@ -123,5 +148,42 @@ public class DefaultMQHaProducer extends DefaultMQProducer {
             throw new RuntimeException("fail to send message to topic[" + msg.getTopic() + "]");
         }
         return sr;
+    }
+
+    // name server info
+    public static class NameserverInfo {
+        private String addressList;
+        private String accessKey;
+        private String secretKey;
+
+        public NameserverInfo(String addressList, String accessKey, String secretKey) {
+            this.addressList = addressList;
+            this.accessKey = accessKey;
+            this.secretKey = secretKey;
+        }
+
+        public String getAddressList() {
+            return addressList;
+        }
+
+        public void setAddressList(String addressList) {
+            this.addressList = addressList;
+        }
+
+        public String getAccessKey() {
+            return accessKey;
+        }
+
+        public void setAccessKey(String accessKey) {
+            this.accessKey = accessKey;
+        }
+
+        public String getSecretKey() {
+            return secretKey;
+        }
+
+        public void setSecretKey(String secretKey) {
+            this.secretKey = secretKey;
+        }
     }
 }
