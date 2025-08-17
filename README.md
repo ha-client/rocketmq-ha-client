@@ -1,7 +1,9 @@
 # rocketmq-ha-client
 
 # how to run unit test
+
 - set 2 cluster info, topic, group
+
 ```shell
 
 export nsv01="127.0.0.1:9876"
