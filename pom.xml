@@ -4,9 +4,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.apache.rocketmq</groupId>
-    <artifactId>rocketmq-ha-client</artifactId>
-    <version>5.3.3</version>
+    <groupId>dev.rocketmq.ha</groupId>
+    <artifactId>rocketmq-client</artifactId>
+    <version>5.3.3-RC1</version>
+    <packaging>jar</packaging>
+
+    <name>RocketMQ Ha Client</name>
+
+    <description>
+        This project is one Implementation for RocketMQ Ha Client
+    </description>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -26,5 +40,21 @@
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.8.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>dev.rocketmq.ha</publishingServerId>
+                    <waitUntil>published</waitUntil>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

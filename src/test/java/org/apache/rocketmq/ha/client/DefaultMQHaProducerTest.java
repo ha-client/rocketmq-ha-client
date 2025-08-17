@@ -1,5 +1,6 @@
 package org.apache.rocketmq.ha.client;
 
+import java.util.LinkedHashMap;
 import org.apache.rocketmq.acl.common.AclClientRPCHook;
 import org.apache.rocketmq.acl.common.SessionCredentials;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -7,8 +8,6 @@ import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.junit.Test;
-
-import java.util.LinkedHashMap;
 
 public class DefaultMQHaProducerTest {
     static final String NAMESRV_LISTS1 = System.getProperty("nsv01", System.getenv("nsv01"));
@@ -21,8 +20,19 @@ public class DefaultMQHaProducerTest {
 
     static final String TOPIC = System.getProperty("rmqTopic", System.getenv("rmqTopic")) == null ? "topic063001" : System.getProperty("rmqTopic", System.getenv("rmqTopic"));
 
+    public static boolean canIgnoreRun() {
+        if (NAMESRV_LISTS1 == null || NAMESRV_LISTS1.isEmpty()) {
+            System.out.println("can not run test for nameserver address not set");
+            return true;
+        }
+        return false;
+    }
+
     @Test
     public void sendHa() throws MQClientException {
+        if (canIgnoreRun()) {
+            return;
+        }
         DefaultMQProducer rmqProducer = new DefaultMQProducer(
                 "test",
                 new AclClientRPCHook(new SessionCredentials(NAMESRV_LISTS1_AK, NAMESRV_LISTS1_SK)),

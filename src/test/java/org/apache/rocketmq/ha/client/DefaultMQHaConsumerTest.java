@@ -1,5 +1,8 @@
 package org.apache.rocketmq.ha.client;
 
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
 import org.apache.rocketmq.acl.common.AclClientRPCHook;
 import org.apache.rocketmq.acl.common.SessionCredentials;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
@@ -13,17 +16,22 @@ import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.remoting.protocol.heartbeat.MessageModel;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.List;
-
-import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.*;
+import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS1;
+import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS1_AK;
+import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS1_SK;
+import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS2;
+import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS2_AK;
+import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS2_SK;
+import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.TOPIC;
 
 public class DefaultMQHaConsumerTest {
     static final String GROUP = System.getProperty("rmqGroup", System.getenv("rmqGroup")) == null ? "group063001" : System.getProperty("rmqGroup", System.getenv("rmqGroup"));
 
     @Test
     public void consumerHa() throws MQClientException, IOException {
+        if (DefaultMQHaProducerTest.canIgnoreRun()) {
+            return;
+        }
         DefaultMQPushConsumer rmqConsumer = new DefaultMQPushConsumer(
                 GROUP,
                 new AclClientRPCHook(new SessionCredentials(NAMESRV_LISTS1_AK, NAMESRV_LISTS1_SK)),
