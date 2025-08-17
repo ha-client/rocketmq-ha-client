@@ -10,6 +10,13 @@ Traditional RocketMQ clients can only connect to a single cluster. Once the clus
 |-------|-------|-------|
 | 2025-08-17 | support connect mutl rocketmq cluster |  |
 
+# How to use
+- Produce in HA
+https://github.com/ha-client/rocketmq-ha-client/blob/948c6b3b65a3e728d7f3e33ff9b2e10caf42a9a8/src/test/java/org/apache/rocketmq/ha/client/DefaultMQHaProducerTest.java#L44-L59
+
+- Consume in HA
+https://github.com/ha-client/rocketmq-ha-client/blob/948c6b3b65a3e728d7f3e33ff9b2e10caf42a9a8/src/test/java/org/apache/rocketmq/ha/client/DefaultMQHaConsumerTest.java#L44-L67  
+
 # How to run unit test
 
 - set 2 cluster info, topic, group
