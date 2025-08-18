@@ -1,4 +1,4 @@
-package org.apache.rocketmq.ha.client;
+package dev.rocketmq.ha.remoting;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -16,13 +16,13 @@ import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.remoting.protocol.heartbeat.MessageModel;
 import org.junit.Test;
 
-import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS1;
-import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS1_AK;
-import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS1_SK;
-import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS2;
-import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS2_AK;
-import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.NAMESRV_LISTS2_SK;
-import static org.apache.rocketmq.ha.client.DefaultMQHaProducerTest.TOPIC;
+import static dev.rocketmq.ha.remoting.DefaultMQHaProducerTest.NAMESRV_LISTS1;
+import static dev.rocketmq.ha.remoting.DefaultMQHaProducerTest.NAMESRV_LISTS1_AK;
+import static dev.rocketmq.ha.remoting.DefaultMQHaProducerTest.NAMESRV_LISTS1_SK;
+import static dev.rocketmq.ha.remoting.DefaultMQHaProducerTest.NAMESRV_LISTS2;
+import static dev.rocketmq.ha.remoting.DefaultMQHaProducerTest.NAMESRV_LISTS2_AK;
+import static dev.rocketmq.ha.remoting.DefaultMQHaProducerTest.NAMESRV_LISTS2_SK;
+import static dev.rocketmq.ha.remoting.DefaultMQHaProducerTest.TOPIC;
 
 public class DefaultMQHaConsumerTest {
     static final String GROUP = System.getProperty("rmqGroup", System.getenv("rmqGroup")) == null ? "group063001" : System.getProperty("rmqGroup", System.getenv("rmqGroup"));
