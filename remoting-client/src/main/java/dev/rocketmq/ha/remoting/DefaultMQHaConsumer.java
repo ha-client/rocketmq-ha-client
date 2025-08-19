@@ -1,4 +1,4 @@
-package org.apache.rocketmq.ha.client;
+package dev.rocketmq.ha.remoting;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -16,7 +16,7 @@ import org.apache.rocketmq.logging.org.slf4j.Logger;
 import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
 import org.apache.rocketmq.remoting.protocol.heartbeat.MessageModel;
 
-import static org.apache.rocketmq.ha.client.DefaultMQHaProducer.copyFieldValue;
+import static dev.rocketmq.ha.remoting.DefaultMQHaProducer.copyFieldValue;
 
 public class DefaultMQHaConsumer extends DefaultMQPushConsumer {
     private final static Logger log = LoggerFactory.getLogger(DefaultMQHaConsumer.class);

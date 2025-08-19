@@ -1,4 +1,4 @@
-package org.apache.rocketmq.ha.client;
+package dev.rocketmq.ha.remoting;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
