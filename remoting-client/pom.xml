@@ -14,7 +14,7 @@
     <version>5.3.3-RC1</version>
 
     <description>
-        This project is one Implementation for RocketMQ Ha Client
+        This module is one Implementation for RocketMQ Remoting Ha Client
     </description>
     <url>https://github.com/ha-client/rocketmq-ha-client</url>
     <developers>
