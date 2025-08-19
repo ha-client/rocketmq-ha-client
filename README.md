@@ -14,7 +14,7 @@ Traditional RocketMQ clients can only connect to a single cluster. Once the clus
 ```xml
 <dependency>
     <groupId>dev.rocketmq.ha</groupId>
-    <artifactId>rocketmq-client</artifactId>
+    <artifactId>remoting-client</artifactId>
     <version>5.3.3-RC1</version>
 </dependency>
 ```
